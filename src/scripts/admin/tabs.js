@@ -126,8 +126,8 @@ class tabSelector {
 	}
 }
 
-const tabs = document.querySelectorAll('#plugin .nav-tab');
-const sections = document.querySelectorAll('#plugin .section');
+const tabs = document.querySelectorAll('#pluginui .nav-tab');
+const sections = document.querySelectorAll('#pluginui .section');
 
 const tabControl = new tabSelector(tabs, sections);
 tabControl.init();
