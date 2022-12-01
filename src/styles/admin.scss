@@ -1,0 +1,131 @@
+// Import the shared style
+@import "utils/_custom_props";
+
+// This stylesheet is used to style the admin of WordPress.
+
+
+// Dashboard
+.dashboard {
+	--column-count: 2;
+
+	// Switch to 4-col grid on larger screens
+	@media screen and (min-width: 48rem) {
+		--column-count: 4;
+	}
+
+	.card {
+		margin-top: 0;
+		max-width: 100%;
+
+		&--progress {
+			$icon-size: 2.4rem;
+
+			display: flex;
+			flex-direction: column;
+			flex-wrap: wrap;
+
+			* {
+				margin: 0;
+				font-size: 0.9rem;
+			}
+
+			&.products {
+				$color: #009688;
+				svg {fill: $color !important;}
+				progress::-webkit-progress-value {background: $color;}
+			}
+			&.categories {
+				$color: #3f51b5;
+				svg {fill: $color !important;}
+				progress::-webkit-progress-value {background: $color;}
+			}
+			&.attributes {
+				$color: #ff9800;
+				svg {fill: $color !important;}
+				progress::-webkit-progress-value {background: $color;}
+			}
+			&.last-update {
+				$color: #e91e63;
+				svg {fill: $color !important;}
+				progress::-webkit-progress-value {background: $color;}
+			}
+
+			i {
+				width: $icon-size;
+				height: $icon-size;
+				padding: $icon-size * .3;
+				justify-self: left;
+				align-self: self-end;
+				position: absolute;
+				background-color: initial;
+
+				svg {
+					width: $icon-size;
+					height: $icon-size;
+				}
+			}
+
+			.data {
+				margin: .25rem 0 0;
+				font-size: 1.8rem;
+				line-height: 2.5rem;
+				font-weight: 700;
+			}
+			.data-title {
+				text-transform: uppercase;
+				color: #999;
+				font-weight: 600;
+			}
+
+			progress {
+				width: 100%;
+				border: 0;
+				height: 5px;
+				margin: 24px 0;
+				&::-webkit-progress-bar {
+					background: #ddd;
+				}
+			}
+
+		}
+	}
+
+	// Flexbox Fallback
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 calc(var(--spacing) * -0.5);
+
+	// Grid
+	display: grid;
+	grid-template-columns: repeat(var(--column-count), 1fr);
+	grid-gap: var(--spacing);
+
+	&__item {
+		// By default, items span 2 columns
+		flex: 1 1 50%;
+		grid-column-end: span 2;
+		padding: calc(var(--spacing) / 2);
+
+		// these span the full width
+		&--full {
+			flex-basis: 100%;
+			grid-column: 1 / -1;
+		}
+
+		// these span only one column
+		&--col {
+			flex-basis: calc(100% / var(--column-count));
+			grid-column-end: span 1;
+		}
+	}
+
+	// If we have grid support, reset the margins and paddings;
+	// grid-gap handles the spacing for us.
+	@supports (display: grid) {
+		margin: 0;
+
+		&__item {
+			padding: 0;
+		}
+	}
+}

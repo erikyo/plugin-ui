@@ -1,0 +1,9 @@
+// This stylesheet is used to style the settings page of the plugin.
+#page-settings {
+	.invalid input {
+		border: 1px solid red;
+	}
+	.valid input {
+		border: 1px solid green;
+	}
+}

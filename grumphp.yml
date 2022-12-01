@@ -1,0 +1,27 @@
+grumphp:
+    ignore_unstaged_changes: false
+    tasks:
+        composer:
+            with_dependencies: false
+            strict: false
+        phpcs:
+            standard: CodeatCodingStandard
+            ignore_patterns: ['/vendor/', '/tests/', '/assets/build']
+        phpmd:
+            exclude: ['/vendor/', '/tests/', '/assets/build']
+        phpstan:
+            configuration: phpstan.neon
+            triggered_by: ['php']
+            ignore_patterns: ['/vendor/']
+        codeception:
+            config_file: ~
+            fail_fast: false
+            suite: ~
+            test: ~
+        git_blacklist:
+            keywords:
+                - 'die('
+                - 'print_r('
+                - 'var_dump('
+            triggered_by: ['php']
+            ignore_patterns: ['product-importer.php']
