@@ -17,8 +17,6 @@ import {
 	TreeSelect,
 } from '@wordpress/components';
 
-import { pluginOptions } from './index';
-
 export const Field = (props) => {
 	return (
 		<tr
@@ -58,7 +56,7 @@ export const DropDownEl = (props) => {
 };
 
 export const Element = ({ data, name, title, component, validation }) => {
-	const [value, setValue] = useState(pluginOptions[name]);
+	const [val, setVal] = useState(data.value ?? '');
 
 	function validate(newData, validator) {
 		console.log(newData, validator);
@@ -73,7 +71,7 @@ export const Element = ({ data, name, title, component, validation }) => {
 			}
 		}
 
-		setValue(newData);
+		setVal(newData);
 	}
 
 	// will set the default value for the input
@@ -81,28 +79,27 @@ export const Element = ({ data, name, title, component, validation }) => {
 		...data,
 		id: name,
 		name,
+		value: val,
 		onChange: (v) => validate(v, validation),
 	};
 
 	switch (component) {
 		case 'input':
-			return <TextControl {...inputProps} value={value} />;
+			return <TextControl {...inputProps} />;
 		case 'textarea':
-			return <TextareaControl {...inputProps} value={value} />;
+			return <TextareaControl {...inputProps} />;
 		case 'range':
-			return (
-				<RangeControl {...inputProps} value={parseFloat(value, 2)} />
-			);
+			return <RangeControl {...inputProps} value={parseFloat(val, 2)} />;
 		case 'select':
-			return <SelectControl {...inputProps} selected={value} />;
+			return <SelectControl {...inputProps} />;
 		case 'radio':
-			return <RadioControl {...inputProps} selected={value} />;
+			return <RadioControl {...inputProps} selected={val} />;
 		case 'checkbox':
 			return (
 				<CheckboxControl
 					{...inputProps}
-					checked={value}
-					onChange={() => validate((v) => !v, validation)}
+					checked={val}
+					onChange={(v) => validate(!v, validation)}
 				/>
 			);
 		case 'toggle':
@@ -110,22 +107,22 @@ export const Element = ({ data, name, title, component, validation }) => {
 				<ToggleControl
 					{...inputProps}
 					label={name}
-					checked={value}
+					checked={val}
 					onChange={() => validate((v) => !v, validation)}
 				/>
 			);
 		case 'tree':
-			return <TreeSelect {...inputProps} selected={value} />;
+			return <TreeSelect {...inputProps} selected={val} />;
 		case 'color-picker':
 			return (
 				<DropDownEl
-					component={<ColorPicker {...inputProps} color={value} />}
+					component={<ColorPicker {...inputProps} color={val} />}
 					name={name}
 					html={
 						<span
 							className={'color-preview'}
 							style={{
-								backgroundColor: value || 'initial',
+								backgroundColor: val || '#000',
 								height: '1rem',
 								width: '1rem',
 								marginRight: '.25rem',
@@ -133,30 +130,36 @@ export const Element = ({ data, name, title, component, validation }) => {
 							}}
 						></span>
 					}
-					displayValue={value}
-					value={value}
+					displayValue={val || 'Choose a color'}
+					value={val}
 				/>
 			);
 		case 'date':
 			return (
 				<DropDownEl
 					component={
-						<DatePicker {...inputProps} currentDate={date(value || new Date())} />
+						<DatePicker
+							{...inputProps}
+							currentDate={val || new Date()}
+						/>
 					}
 					name={name}
-					displayValue={date('d.m.Y H:i', value, 0)}
-					value={value}
+					displayValue={date('d.m.Y H:i', val, 0)}
+					value={val}
 				/>
 			);
 		case 'time':
 			return (
 				<DropDownEl
 					component={
-						<TimePicker {...inputProps} currentDate={date(value || new Date())} />
+						<TimePicker
+							{...inputProps}
+							currentDate={val || new Date()}
+						/>
 					}
 					name={name}
-					displayValue={date('d.m.Y H:i', value, 0)}
-					value={value}
+					displayValue={date('d.m.Y H:i', val, 0)}
+					value={val}
 				/>
 			);
 		case 'datetime':
@@ -165,12 +168,12 @@ export const Element = ({ data, name, title, component, validation }) => {
 					component={
 						<DateTimePicker
 							{...inputProps}
-							currentDate={date(value || new Date())}
+							currentDate={val || new Date()}
 						/>
 					}
 					name={name}
-					displayValue={date('d.m.Y H:i', value, 0)}
-					value={value}
+					displayValue={date('d.m.Y H:i', val, 0)}
+					value={val}
 				/>
 			);
 		case 'button':

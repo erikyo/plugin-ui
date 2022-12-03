@@ -31,7 +31,7 @@ $sections = array(
  * It generates a tabbed interface for the settings page
  *
  * @param array $sections An array of sections. Each section is an array with a title and a slug.
- * @param array $selected The slug of the section that should be displayed.
+ * @param int!string $selected The slug of the section that should be displayed.
  */
 function generate_tabs($sections, $selected) {
 	if (is_array($sections)) {
@@ -52,7 +52,7 @@ function generate_tabs($sections, $selected) {
 		/* then add the content for each tab */
 		foreach ($sections as $slug => $section) {
 			printf(
-				'<div id="tab-%s" class="section wrap %s" data-section="%s">',
+				'<div id="tab-%s" class="nav-section wrap %s" data-section="%s">',
 				$slug,
 				$selected === $slug ? 'selected' : 'hide',
 				$slug

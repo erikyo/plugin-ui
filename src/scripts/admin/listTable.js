@@ -1,179 +1,37 @@
 /* global piSettings */
-import {
-	Button,
-	CheckboxControl,
-	DateTimePicker,
-	Dropdown,
-	SelectControl,
-	TextControl,
-	TreeSelect,
-} from '@wordpress/components';
-import { queryData, queryPost } from '../utils/fetch';
+import { queryArgs, queryData, queryPost } from '../utils/fetch';
 import { useState, useEffect, useRef } from '@wordpress/element';
 
 import { Loader } from '../components/Loader';
-
-export const ListRow = (props) => {
-	const [isChecked, setChecked] = useState(false);
-
-	function postAction(action, id) {
-		console.log(action, id);
-		return true;
-	}
-
-	return (
-		<tr>
-			<th scope="row" className="check-column">
-				<label
-					className="screen-reader-text"
-					htmlFor={'checkbox_' + props.ID}
-				>
-					Select SearchWP Live Ajax Search
-				</label>
-				<CheckboxControl
-					id={'checkbox_' + props.ID}
-					checked={isChecked}
-					onChange={setChecked}
-				/>
-			</th>
-			<td>
-				<strong>
-					<Button
-						variant={'link'}
-						className="row-title"
-						href={props.guid}
-						aria-label={props.post_title + ' (Edit)'}
-					>
-						{props.post_title}
-					</Button>
-				</strong>
-				<div className="row-actions">
-					<span className="edit">
-						<Button
-							variant={'link'}
-							onClick={() => postAction('edit', props.ID)}
-							aria-label={'Edit ' + props.post_title}
-						>
-							Edit
-						</Button>
-						|
-					</span>
-					<span className="inline">
-						<Button
-							variant="link"
-							className="button-link editinline"
-							aria-label={`Quick edit (${props.post_title}) inline`}
-							aria-expanded="false"
-						>
-							Quick&nbsp;Edit
-						</Button>
-						|
-					</span>
-					<span className="trash">
-						<Button
-							variant="link"
-							onClick={() => postAction('delete', props.ID)}
-							className="submitdelete"
-							aria-label={`Move (${props.post_title}) to the Trash`}
-						>
-							Trash
-						</Button>
-						|
-					</span>
-					<span className="view">
-						<Button
-							variant="link"
-							onClick={() => postAction('view', props.ID)}
-							rel="bookmark"
-							aria-label={`View (${props.post_title})`}
-						>
-							View
-						</Button>
-					</span>
-				</div>
-			</td>
-			<td>{props.post_author}</td>
-			<td>{props.post_status}</td>
-			<td>{props.ping_status}</td>
-			<td>{props.comment_count}</td>
-			<td className={'date column-date'}>
-				{props.post_status} <br />
-				{props.post_date_gmt}
-			</td>
-		</tr>
-	);
-};
+import { Rows } from '../components/Row';
+import { TableNav } from '../components/TableNav';
+import { CheckboxControl } from '@wordpress/components';
 
 export const ListTable = ({ dataType }) => {
 	const [wait, setWait] = useState(false);
-	const [listRows, setListRows] = useState([]);
-	let [filterRows, setFilterRows] = useState([]);
-	let [tableData, setTableData] = useState({});
+	const [rows, setRows] = useState([]);
+	const [checkAll, setCheckAll] = useState(false);
+	const [filters, setFilters] = useState({});
 
 	let [page, setPage] = useState(0);
-	const [catFilter, setCatFilter] = useState('');
+	let [tableData, setTableData] = useState({});
 
-	const postsPerPage = 10;
-	const loadRef = useRef();
-
-	const [filter, setFilter] = useState('');
-	const [listAction, setListAction] = useState('');
-	const [listDateTime, setListDateTime] = useState(new Date().toString());
-
-	const queryArgs = (currentPage = 0) => ({
-		postType: dataType,
-		post_status: 'publish',
-		posts_per_page: postsPerPage,
-		paged: currentPage,
-		order: 'DESC',
-		orderby: 'post-date',
-		tax_query: {
-			taxonomy: dataType + '_cat',
-		},
-	});
-
-	const DateTimeFilter = () => (
-		<Dropdown
-			className="filter-by-date-container"
-			position="bottom right"
-			renderToggle={({ isOpen, onToggle }) => (
-				<Button
-					variant="link"
-					onClick={onToggle}
-					aria-expanded={isOpen}
-				>
-					{listDateTime}
-				</Button>
-			)}
-			renderContent={() => (
-				<DateTimePicker
-					name={'m'}
-					id={'filter-by-date'}
-					currentDate={listDateTime}
-					onChange={(newDateTime) => setListDateTime(newDateTime)}
-					is12Hour={true}
-				/>
-			)}
-		/>
-	);
+	const loaderRef = useRef();
 
 	/**
 	 * It takes a customArgs object as an argument, sets the wait state to true, increments the page number, and then queries the server for the next page of products
-	 *
-	 * @param {*|{posts_per_page: number, offset: number, postType: string, post_status: string, tax_query: {taxonomy: string}}} customArgs - This is an object that you can pass to the function to override the default args.
 	 */
-	const fetchProducts = async (customArgs = false) => {
-		setWait(true);
-		setPage(++page);
-		return queryPost(customArgs || queryArgs(page), piSettings.nonce)
+	const fetchPost = async () => {
+		return queryPost(queryArgs(dataType, page), piSettings.nonce)
 			.then((products) => {
 				if (products.error) {
 					throw new Error(products.error);
 				}
-				setWait(false);
 				return products;
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				throw new Error(err);
+			});
 	};
 
 	const fetchTableData = async (datatype) => {
@@ -186,7 +44,9 @@ export const ListTable = ({ dataType }) => {
 				setWait(false);
 				return res;
 			})
-			.catch((err) => console.log(err));
+			.catch((err) => {
+				throw new Error(err);
+			});
 	};
 
 	/**
@@ -198,176 +58,92 @@ export const ListTable = ({ dataType }) => {
 	 */
 	const observerCallback = async (entries) => {
 		if (entries[0].isIntersecting) {
-			await fetchProducts().then((newProducts) => {
+			setWait(true);
+			setPage(++page);
+			await fetchPost().then((newProducts) => {
 				if (newProducts) {
-					setListRows((rows) => [...rows, ...newProducts]);
+					setRows((tableRows) => [...tableRows, ...newProducts]);
+					setWait(false);
 				}
 			});
 		}
+	};
+
+	const selectAllCheckboxes = (checked) => {
+		setCheckAll(!checked);
+		rows.map((row) => !row.checked);
 	};
 
 	const observer = new window.IntersectionObserver((entries) =>
 		observerCallback(entries)
 	);
 
-	function filtered() {
-		filterRows = filter
-			? listRows.filter((listRow) => listRow.post_title.includes(filter))
-			: listRows;
-
-		return filterRows.map((row, index) => <ListRow key={index} {...row} />);
-	}
-
 	useEffect(() => {
+		/* Fetching the categories from the server and then sorting them into an object with the term_id as the key and the name as the value. */
 		fetchTableData('categories').then((res) => {
-			const sortedCat = {};
-			Object.values(res).forEach(
-				(cat) =>
-					(sortedCat[cat.term_id] = {
-						id: cat.term_id,
-						name: cat.name,
-					})
+			const sortedCat = [];
+			Object.values(res).forEach((cat) =>
+				sortedCat.push({
+					name: cat.name,
+					id: cat.term_id,
+				})
 			);
-			console.log(sortedCat);
+			console.log('Categories', sortedCat);
 			tableData = { ...tableData, categories: sortedCat };
 			setTableData(tableData);
 		});
 
+		/* Fetching the authors from the server and then sorting them into an object with the id as the key and the display_name as the value. */
 		fetchTableData('authors').then((res) => {
 			const sortedUsers = {};
 			Object.values(res).forEach(
 				(user) => (sortedUsers[user.id] = user.display_name)
 			);
-			console.log(sortedUsers);
+			console.log('Users', sortedUsers);
 			tableData = { ...tableData, authors: res };
 			setTableData(tableData);
 		});
 
-		console.log(tableData);
-
-		observer.observe(loadRef.current);
+		observer.observe(loaderRef.current);
 	}, []);
 
 	useEffect(() => {
-		if (!wait && !filter) {
-			observer.observe(loadRef.current);
+		console.log(filters);
+		if (!wait && Object.keys(filters).length === 0) {
+			observer.observe(loaderRef.current);
 
 			return () => {
-				observer.unobserve(loadRef.current);
+				observer.unobserve(loaderRef.current);
 			};
 		}
-	}, [wait, filter]);
+	}, [wait, filters]);
 
 	return (
 		<form id="posts-filter" method="get">
-			<ul className="subsubsub">
-				<li className="all">
-					<a href="edit.php?post_type=page">
-						All <span className="count">({listRows.length})</span>
-					</a>{' '}
-					|
-				</li>
-				<li className="publish">
-					<a href="edit.php?post_status=publish&amp;post_type=page">
-						Published
-						<span className="count">
-							{
-								listRows.filter(
-									(row) => row.post_status === 'publish'
-								).length
-							}
-						</span>
-					</a>
-				</li>
-			</ul>
-
-			<div className="search-box">
-				<label
-					className="screen-reader-text"
-					htmlFor="post-search-input"
-				>
-					Search Posts:
-				</label>
-				<TextControl
-					type={'search'}
-					id={'post-search-input'}
-					name={'s'}
-					value={filter}
-					onChange={(s) => setFilter(s)}
-				/>
-				<TextControl
-					type={'submit'}
-					id="search-submit"
-					value="Search Posts"
-				/>
-			</div>
-
-			<div className="tablenav top">
-				<div className="alignleft actions bulkactions flex">
-					<label
-						htmlFor={'bulk-action-selector-top'}
-						className={'screen-reader-text'}
-					>
-						Bulk actions
-					</label>
-					<SelectControl
-						id={'bulk-action-selector-top'}
-						value={listAction}
-						options={[
-							{ label: 'Bulk actions', value: '-1' },
-							{
-								label: 'Edit',
-								value: 'edit',
-							},
-							{ label: 'Move to Trash', value: 'trash' },
-						]}
-						onChange={(newAction) => setListAction(newAction)}
-					/>
-					<TextControl
-						type={'submit'}
-						id={'doaction'}
-						className={'button action'}
-						value={'Apply'}
-					/>
-				</div>
-
-				<div className="alignleft actions">
-					<label
-						htmlFor="filter-by-date"
-						className="screen-reader-text"
-					>
-						Filter by date
-					</label>
-					<DateTimeFilter />
-
-					<label className="screen-reader-text" htmlFor="cat">
-						Filter by category
-					</label>
-					<TreeSelect
-						name="cat"
-						id="cat"
-						noOptionLabel="filter by category"
-						onChange={(newCat) => setCatFilter(newCat)}
-						className="postform"
-						options={tableData.categories}
-					/>
-				</div>
-			</div>
+			<TableNav
+				listRows={rows}
+				tableData={tableData}
+				handleFilter={setFilters}
+				currentFilters={filters}
+			/>
 
 			<table className="wp-list-table widefat fixed striped table-view-list posts">
 				<thead>
 					<tr>
-						<td
-							id="cb"
-							className="manage-column column-cb check-column"
-						>
+						<td id="cb" className="manage-column">
 							<label
 								className="screen-reader-text"
-								htmlFor="cb-select-all-1"
+								htmlFor="cb-select-all"
 							>
 								Select All
 							</label>
-							<input id="cb-select-all-1" type="checkbox" />
+							<CheckboxControl
+								id="cb-select-all"
+								value={checkAll}
+								onChange={(checked) =>
+									selectAllCheckboxes(checked)
+								}
+							/>
 						</td>
 						<th
 							scope="col"
@@ -433,14 +209,12 @@ export const ListTable = ({ dataType }) => {
 				</thead>
 
 				<tbody id="the-list">
-					{filtered()}
-					<tr>
-						<td colSpan={7} ref={loadRef}>
-							<Loader id={'loader'} isloading={wait} />
-						</td>
-					</tr>
+					<Rows rowList={rows} filterList={filters} />
 				</tbody>
 			</table>
+			<div className={'loader-wrapper aligncenter'} ref={loaderRef}>
+				<Loader isLoading={wait} />
+			</div>
 		</form>
 	);
 };

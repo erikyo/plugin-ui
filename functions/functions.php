@@ -16,7 +16,7 @@
  * @return array
  */
 function pi_get_settings() {
-	return apply_filters( 'pi_get_settings', get_option( P_TEXTDOMAIN . '-settings' ) );
+	return apply_filters( 'pi_get_settings', get_option( P_TEXTDOMAIN . '-settings', array() ) );
 }
 
 

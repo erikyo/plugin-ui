@@ -9,10 +9,15 @@ import { updateOption } from '../utils/fetch';
 export const pluginSettings = piSettings.settings;
 export const pluginOptions = piSettings.saved ?? {};
 
-export const SettingsForm = (props) => {
-	const { fields, section, page } = props ?? {};
+export const SettingsForm = ({ fields, options, section, page }) => {
 	const [wait, setWait] = useState(false);
 	const formName = page + '-settings';
+	const formEl = document.getElementById(formName);
+
+	fields.forEach((field) => {
+		field.data = field.data || {};
+		field.data.value = options[field.name] || field.data.default || '';
+	});
 
 	/**
 	 * It takes the form data, merges it with the existing plugin options, and then sends it to the server to be saved
@@ -21,8 +26,9 @@ export const SettingsForm = (props) => {
 	 */
 	function storeOptions(formData) {
 		setWait(true);
+		console.log('saving', formData);
 
-		const newSettings = { ...pluginOptions, ...formData };
+		const newSettings = { ...options, ...formData };
 
 		updateOption(newSettings, piSettings.nonce)
 			.then(() => {
@@ -32,18 +38,26 @@ export const SettingsForm = (props) => {
 	}
 
 	/**
-	 * `handleSubmit` is a function that takes an event as an argument, prevents the default action of the event, creates an object from the form data, and then stores the object in local storage
+	 * `handleSubmit` is a function that takes an event as an argument, prevents the default action of the event, creates an object from the form data,
+	 * and then stores the object in local storage
 	 *
 	 * @param {Event} event - The event object that is passed to the event handler.
 	 */
 	function handleSubmit(event) {
 		event.preventDefault();
-		const formData = Object.fromEntries(new window.FormData(event.target));
-		storeOptions(formData);
+		storeOptions(getFormData(event.target));
 	}
 
 	/**
-	 * If the user presses the `Ctrl` or `Cmd` key and the `s` key, then prevent the default action of the browser (which is to save the page), and instead save the form data to the browser's storage
+	 * It takes a form element and returns an object with the form's data
+	 *
+	 * @param {HTMLElement} form - the form id
+	 */
+	const getFormData = (form) => Object.fromEntries(new window.FormData(form));
+
+	/**
+	 * If the user presses the `Ctrl` or `Cmd` key and the `s` key, then prevent the default action of the browser (which is to save the page),
+	 * and instead save the form data to the browser's storage
 	 *
 	 * @param {Event} event - The event object that was triggered.
 	 */
@@ -51,10 +65,7 @@ export const SettingsForm = (props) => {
 		const charCode = String.fromCharCode(event.which).toLowerCase();
 		if ((event.ctrlKey || event.metaKey) && charCode === 's') {
 			event.preventDefault();
-			const formData = Object.fromEntries(
-				new window.FormData(document.getElementById(formName))
-			);
-			storeOptions(formData);
+			storeOptions(() => getFormData(formEl));
 		}
 	}
 
@@ -63,15 +74,17 @@ export const SettingsForm = (props) => {
 			method="post"
 			action={'options.php'}
 			id={formName}
-			onKeyDown={onkeydown}
 			onSubmit={handleSubmit}
 			className={'card'}
 		>
-			<h2>{section}</h2>
+			<h2>
+				{page} - {section}
+			</h2>
 			<table
 				className={section + '-table'}
 				role="presentation"
 				title={section}
+				onKeyDown={onkeydown}
 			>
 				<tbody>
 					{fields
@@ -90,6 +103,11 @@ export const SettingsForm = (props) => {
 
 export const formWrap = document.getElementById('plugin-settings') ?? {};
 wp.element.render(
-	<SettingsForm fields={pluginSettings} section={'section'} page={'page'} />,
+	<SettingsForm
+		fields={pluginSettings}
+		options={pluginOptions}
+		section={'section'}
+		page={'page'}
+	/>,
 	formWrap
 );

@@ -5,7 +5,7 @@ import { getFromQueryString } from '../utils/helpers';
  *  adds the active class to the clicked tab, hides all sections, and shows the section that matches the clicked tab
  */
 class tabSelector {
-	constructor(tabs, sections) {
+	constructor({ tabs, sections }) {
 		this.tabs = tabs;
 		this.sections = sections;
 		this.currentTab = undefined;
@@ -17,8 +17,8 @@ class tabSelector {
 	};
 
 	validateTabs() {
-		const tabsEntries = Object.values(tabs);
-		const sectionsEntries = Object.values(sections);
+		const tabsEntries = Object.values(this.tabs);
+		const sectionsEntries = Object.values(this.sections);
 		if (tabsEntries.length !== sectionsEntries.length) {
 			throw new Error(
 				'Tabs and sections must be the same number of items'
@@ -109,8 +109,13 @@ class tabSelector {
 	 * It sets the current tab to the tab specified in the query string, or the default tab if no tab is specified in the query string
 	 */
 	init() {
-		// check tabs congruency
-		if (!this.validateTabs()) {
+		// Enable only if tabs are found inside pluginui container
+		if (Object.keys(this.tabs).length === 0) {
+			console.log('no tabs found!');
+			return true;
+		}
+		// Check tabs congruency
+		else if (!this.validateTabs()) {
 			throw new Error('tabs validation check failed!');
 		}
 
@@ -126,11 +131,14 @@ class tabSelector {
 	}
 }
 
-const tabs = document.querySelectorAll('#pluginui .nav-tab');
-const sections = document.querySelectorAll('#pluginui .section');
-
-const tabControl = new tabSelector(tabs, sections);
-tabControl.init();
-
 window.pi = {};
-window.pi.tabs = tabControl;
+
+const pluginui = document.querySelector('#pluginui');
+if (pluginui) {
+	const tabControl = new tabSelector({
+		tabs: pluginui.querySelectorAll('.nav-tab'),
+		sections: pluginui.querySelectorAll('.nav-section'),
+	});
+	tabControl.init();
+	window.pi.tabs = tabControl;
+}

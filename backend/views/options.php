@@ -19,8 +19,8 @@ function get_plugin_settings() {
 			"section" => "section",
 			"component" => "input",
 			"data" => [
+				"default" => "your name",
 				"type" => "text",
-				"value" => "your name",
 				"disabled" => true
 			],
 			"validation" => [
@@ -58,6 +58,7 @@ function get_plugin_settings() {
 			"section" => "section",
 			"component" => "radio",
 			"data" => [
+				"default" => "a",
 				"options" => [
 					[
 						"label" => "Author",
@@ -107,6 +108,7 @@ function get_plugin_settings() {
 				"step" => "any",
 				"allowreset" => true,
 				"withinputfield" => false,
+				"default" => 2.0,
 				"marks" => [
 					[
 						"value" => 0,
@@ -135,7 +137,7 @@ function get_plugin_settings() {
 			"section" => "section",
 			"component" => "color-picker",
 			"data" => [
-				"defaultValue" => "#f60"
+				"default" => "#f60"
 			]
 		],
 		[
