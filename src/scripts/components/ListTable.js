@@ -1,12 +1,19 @@
-/* global piSettings */
-import { queryArgs, queryData, queryPost } from '../utils/fetch';
+import { fetchPost, fetchTableData } from '../utils/fetch';
 import { useState, useEffect, useRef } from '@wordpress/element';
-
-import { Loader } from '../components/Loader';
-import { Rows } from '../components/Row';
-import { TableNav } from '../components/TableNav';
 import { CheckboxControl } from '@wordpress/components';
 
+import { Loader } from './Loader';
+import { Rows } from './Rows';
+import { TableNav } from './TableNav';
+
+/**
+ * It takes a customArgs object as an argument, sets the wait state to true, increments the page number, and then queries the server for the next page of products
+ *
+ * @param {Object} props          - the component properties
+ * @param {string} props.dataType - the type of showed data (post, products, etc.)
+ *
+ * @return {JSX} A table with a list of posts.
+ */
 export const ListTable = ({ dataType }) => {
 	const [wait, setWait] = useState(false);
 	const [rows, setRows] = useState([]);
@@ -19,37 +26,6 @@ export const ListTable = ({ dataType }) => {
 	const loaderRef = useRef();
 
 	/**
-	 * It takes a customArgs object as an argument, sets the wait state to true, increments the page number, and then queries the server for the next page of products
-	 */
-	const fetchPost = async () => {
-		return queryPost(queryArgs(dataType, page), piSettings.nonce)
-			.then((products) => {
-				if (products.error) {
-					throw new Error(products.error);
-				}
-				return products;
-			})
-			.catch((err) => {
-				throw new Error(err);
-			});
-	};
-
-	const fetchTableData = async (datatype) => {
-		setWait(true);
-		return queryData(datatype, piSettings.nonce)
-			.then((res) => {
-				if (res.error) {
-					throw new Error(res.error);
-				}
-				setWait(false);
-				return res;
-			})
-			.catch((err) => {
-				throw new Error(err);
-			});
-	};
-
-	/**
 	 * When the user scrolls to the bottom of the page, fetch more products and add them to the list
 	 *
 	 * @param {HTMLCollection} entries - An array of IntersectionObserverEntry objects.
@@ -60,7 +36,7 @@ export const ListTable = ({ dataType }) => {
 		if (entries[0].isIntersecting) {
 			setWait(true);
 			setPage(++page);
-			await fetchPost().then((newProducts) => {
+			await fetchPost(dataType, page).then((newProducts) => {
 				if (newProducts) {
 					setRows((tableRows) => [...tableRows, ...newProducts]);
 					setWait(false);
@@ -88,7 +64,7 @@ export const ListTable = ({ dataType }) => {
 					id: cat.term_id,
 				})
 			);
-			console.log('Categories', sortedCat);
+			console.table(sortedCat);
 			tableData = { ...tableData, categories: sortedCat };
 			setTableData(tableData);
 		});
@@ -99,7 +75,7 @@ export const ListTable = ({ dataType }) => {
 			Object.values(res).forEach(
 				(user) => (sortedUsers[user.id] = user.display_name)
 			);
-			console.log('Users', sortedUsers);
+			console.table(sortedUsers);
 			tableData = { ...tableData, authors: res };
 			setTableData(tableData);
 		});
@@ -108,7 +84,6 @@ export const ListTable = ({ dataType }) => {
 	}, []);
 
 	useEffect(() => {
-		console.log(filters);
 		if (!wait && Object.keys(filters).length === 0) {
 			observer.observe(loaderRef.current);
 
@@ -218,6 +193,3 @@ export const ListTable = ({ dataType }) => {
 		</form>
 	);
 };
-
-const listTable = document.getElementById('plugin-manager') ?? {};
-wp.element.render(<ListTable dataType={'products'} />, listTable);
