@@ -1,8 +1,13 @@
 /* global piSettings */
 import apiFetch from '@wordpress/api-fetch';
 
-apiFetch.use(apiFetch.createNonceMiddleware(piSettings.nonce));
-
+/**
+ * It returns an object with the query arguments for the WordPress REST API
+ *
+ * @param {string} [dataType=post]   - The type of data you want to query.
+ * @param {number} [currentPage=0]   - The current page number.
+ * @param {number} [postsPerPage=10] - The number of posts to display per page.
+ */
 export const queryArgs = (
 	dataType = 'post',
 	currentPage = 0,
@@ -19,6 +24,14 @@ export const queryArgs = (
 	},
 });
 
+/**
+ * It sends a POST request to the `/plugin/v1/settings` endpoint with the options and nonce
+ *
+ * @param {Object} options - An object containing the options to update.
+ * @param {string} nonce   - A nonce that is used to verify the request.
+ *
+ * @return {Promise} - a promise that will return an object with the settings and the validation results
+ */
 export function updateOption(options, nonce) {
 	return apiFetch({
 		path: '/plugin/v1/settings',
@@ -30,6 +43,14 @@ export function updateOption(options, nonce) {
 	});
 }
 
+/**
+ * It sends a POST request to the `/plugin/v1/manager/query` endpoint with the `args` and `nonce` arguments
+ *
+ * @param {Object} args  - The arguments to pass to the query.
+ * @param {string} nonce - A random string that is used to prevent CSRF attacks.
+ *
+ * @return {Promise} The response to the query
+ */
 export function queryPost(args, nonce) {
 	return apiFetch({
 		path: '/plugin/v1/manager/query',
@@ -41,6 +62,14 @@ export function queryPost(args, nonce) {
 	});
 }
 
+/**
+ * It sends a POST request to the `/plugin/v1/manager/data` endpoint with the `datatype` and `nonce` parameters
+ *
+ * @param {string} datatype - The type of data you want to retrieve.
+ * @param {string} nonce    - A random string that is used to identify the request.
+ *
+ * @return {Promise} The data is being returned.
+ */
 export function queryData(datatype, nonce) {
 	return apiFetch({
 		path: '/plugin/v1/manager/data',

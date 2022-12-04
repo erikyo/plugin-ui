@@ -6,6 +6,7 @@ import {
 	TextControl,
 	TreeSelect,
 } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 
 export const TableNav = ({
 	listRows,
@@ -22,13 +23,14 @@ export const TableNav = ({
 			<ul className="subsubsub">
 				<li className="all">
 					<a href="edit.php?post_type=page">
-						All <span className="count">({listRows.length})</span>
-					</a>{' '}
+						{__('All')}
+						<span className="count">({listRows.length})</span>
+					</a>
 					|
 				</li>
 				<li className="publish">
 					<a href="edit.php?post_status=publish&amp;post_type=page">
-						Published
+						{__('Published')}
 						<span className="count">
 							(
 							{
@@ -47,7 +49,7 @@ export const TableNav = ({
 					className="screen-reader-text"
 					htmlFor="post-search-input"
 				>
-					Search Posts:
+					{__('Search Posts:')}
 				</label>
 				<TextControl
 					type={'search'}
@@ -67,7 +69,7 @@ export const TableNav = ({
 				/>
 				<Button
 					id="search-submit"
-					text="Search Posts"
+					text={__('Search Posts')}
 					variant={'secondary'}
 				/>
 			</div>
@@ -78,26 +80,22 @@ export const TableNav = ({
 						htmlFor={'bulk-action-selector-top'}
 						className={'screen-reader-text'}
 					>
-						Bulk actions
+						{__('Bulk actions')}
 					</label>
 					<SelectControl
 						id={'bulk-action-selector-top'}
 						value={''}
 						options={[
-							{ label: 'Bulk actions', value: '' },
+							{ label: __('Bulk actions'), value: '' },
 							{
-								label: 'Edit',
+								label: __('Edit'),
 								value: 'edit',
 							},
-							{ label: 'Move to Trash', value: 'trash' },
+							{ label: __('Move to Trash'), value: 'trash' },
 						]}
 						onChange={(action) => listAction(action)}
 					/>
-					<Button
-						id={'doaction'}
-						variant={'secondary'}
-						text={'Apply'}
-					/>
+					<Button variant={'secondary'} text={__('Apply')} />
 				</div>
 
 				<div className="alignleft actions">
@@ -105,7 +103,7 @@ export const TableNav = ({
 						htmlFor="filter-by-date"
 						className="screen-reader-text"
 					>
-						Filter by date
+						{__('Filter by date')}
 					</label>
 					<Dropdown
 						className="filter-by-date-container"
@@ -141,7 +139,7 @@ export const TableNav = ({
 					/>
 
 					<label className="screen-reader-text" htmlFor="cat">
-						Filter by category
+						{__('Filter by category')}
 					</label>
 					<TreeSelect
 						name="cat"

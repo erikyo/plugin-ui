@@ -132,10 +132,16 @@ class RestAdmin extends Base {
 				$posts = $query->posts;
 				$response = \rest_ensure_response( $posts );
 				$response->set_status( 200 );
-			} elseif (is_wp_error($query)) {
-				$response = \rest_ensure_response( array("error"=>'query_error') );
-				$response->set_status( 500 );
+			} else {
+				if (is_wp_error($query)) {
+					$response = \rest_ensure_response( array("error"=>'query_error') );
+					$response->set_status( 500 );
+				} else {
+					$response = \rest_ensure_response( 'end' );
+					$response->set_status( 200 );
+				}
 			}
+
 		} else {
 			$response = \rest_ensure_response( array("error"=>'query_params is empty') );
 			$response->set_status( 500 );

@@ -131,14 +131,17 @@ class tabSelector {
 	}
 }
 
-window.pi = {};
-
 const pluginui = document.querySelector('#pluginui');
 if (pluginui) {
 	const tabControl = new tabSelector({
 		tabs: pluginui.querySelectorAll('.nav-tab'),
 		sections: pluginui.querySelectorAll('.nav-section'),
 	});
+
+	/* Initialize tabControl */
 	tabControl.init();
-	window.pi.tabs = tabControl;
+
+	/* Making the tabControl object available to the global window object. */
+	if (typeof window.pluginUI === 'undefined') window.pluginUI = {};
+	window.pluginUI.tabs = tabControl;
 }

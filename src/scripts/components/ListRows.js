@@ -1,7 +1,7 @@
 import { Button, CheckboxControl } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 
-export const ListRow = (props) => {
+export const ListRows = (props) => {
 	const [isChecked, setChecked] = useState(false);
 
 	function postAction(action, id) {
@@ -90,4 +90,23 @@ export const ListRow = (props) => {
 			</td>
 		</tr>
 	);
+};
+
+/**
+ * It takes in a list of rows and a filter list, and returns a list of rows that match the filter list
+ *
+ * @param {Object} props            - the table props
+ * @param {Object} props.rowList    - the table rows
+ * @param {Object} props.filterList - filters available
+ *
+ * @return {JSX} The Rows component is being returned.
+ */
+export const Rows = ({ rowList, filterList }) => {
+	const filterRows = filterList.search
+		? rowList.filter((listRow) =>
+				listRow.post_title.includes(filterList.search)
+		  )
+		: rowList;
+
+	return filterRows.map((row, index) => <ListRows key={index} {...row} />);
 };

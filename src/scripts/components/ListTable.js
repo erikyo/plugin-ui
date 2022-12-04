@@ -1,9 +1,12 @@
+/* global piSettings */
+import apiFetch from '@wordpress/api-fetch';
+
 import { fetchPost, fetchTableData } from '../utils/fetch';
 import { useState, useEffect, useRef } from '@wordpress/element';
 import { CheckboxControl } from '@wordpress/components';
 
 import { Loader } from './Loader';
-import { Rows } from './Rows';
+import { Rows } from './ListRows';
 import { TableNav } from './TableNav';
 
 /**
@@ -24,6 +27,8 @@ export const ListTable = ({ dataType }) => {
 	let [tableData, setTableData] = useState({});
 
 	const loaderRef = useRef();
+
+	apiFetch.use(apiFetch.createNonceMiddleware(piSettings.nonce));
 
 	/**
 	 * When the user scrolls to the bottom of the page, fetch more products and add them to the list

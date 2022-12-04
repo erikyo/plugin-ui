@@ -154,4 +154,4 @@ export function dashCharts() {
 	);
 }
 
-window.onload = dashCharts();
+window.onload = () => dashCharts();
